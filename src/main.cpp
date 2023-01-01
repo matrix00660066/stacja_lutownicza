@@ -1,5 +1,4 @@
 #include <Arduino.h>
-
 #include <DS3231.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
