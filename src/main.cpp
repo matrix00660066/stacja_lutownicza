@@ -5,8 +5,7 @@
 #include <RotaryEncoder.h>
 #include <EEPROM.h>
 
-//////////////////////////////////////////////////////////////////////////////
-
+/*****************************************************************************************************************************/
 #define SW 7        // Deklaracja pinu od przycisku Enkodera
 #define Sensor 11   // Deklaracja Pinu od czujnika odłożonej kolby
 #define Bulb 6      // Pin sterujacy oswietleniem 230V
