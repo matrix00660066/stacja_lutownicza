@@ -312,12 +312,13 @@ void setTime()
   }
   rtc.setTime(hr, mt, 00); // Ustawianie czasu
 }
+w
+    //////////////////////////////////////////////////////////////////////////////
+    // Clock Icon    Clock Icon    Clock Icon    Clock Icon    Clock Icon    Clock
+    //////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////
-// Clock Icon    Clock Icon    Clock Icon    Clock Icon    Clock Icon    Clock
-//////////////////////////////////////////////////////////////////////////////
-
-void blinkClock() // Miganie ikonka zegara
+    void
+    blinkClock() // Miganie ikonka zegara
 {
   lcd.createChar(0, ClockChar);                               // wpisanie znaku clockChar na pozycji 0
   if (((millis() - timeS) > 0) && ((millis() - timeS) < 250)) // Jesli czas pracy jest wiekszy niz 0 i mniejszy niz 250
