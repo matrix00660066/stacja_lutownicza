@@ -17,7 +17,6 @@
 
 RotaryEncoder encoder(2, 3);        // Piny do których podłaczamy Enkoder
 LiquidCrystal_I2C lcd(0x3F, 20, 4); // Deklaracja adresu i rodzaju LCD
-DS3231 rtc(SDA, SCL);               // Konfiguracja modułu RTC
 
 long sysTime;                                                        // Zmienna do przechowywania czasu pracy procesora
 int hr = 0, mt = 0, Ahr = 0, Amt = 0;                                // Zmienne do przechowywania godzin i minut
@@ -32,6 +31,15 @@ byte moonChar[] = {0x03, 0x0E, 0x0C, 0x1C, 0x1C, 0x0C, 0x0E, 0x03};  // Moon Ico
 byte onoffChar[] = {0x00, 0x0E, 0x11, 0x15, 0x15, 0x11, 0x0E, 0x00}; // on off Icon
 byte bulbChar[] = {0x0E, 0x11, 0x11, 0x11, 0x0A, 0x0E, 0x0E, 0x04};  // Bulb Icon
 byte fanChar[] = {0x00, 0x13, 0x14, 0x0E, 0x05, 0x19, 0x00, 0x00};   // Fan Icon
+
+DS3231 clock;
+byte year;
+byte month;
+byte date;
+byte dOW;
+byte hour;
+byte minute;
+byte second;
 
 long timeS = 0; // Zmienna do przechowywania czasu dla migania ikoną Clock
 
@@ -64,9 +72,11 @@ void setup()
   pinMode(Triak, OUTPUT);        // Wyjscie zasilania kolby
 
   Serial.begin(9600); // Inicjalizacja Seriala
-  rtc.begin();        // Inicjalizacja RTC
-  lcd.init();         // Inicjalizacja LCD
-  lcd.backlight();    // Włączenie podświetlenia LCD
+  // Serial.begin(57600);
+  lcd.init();      // Inicjalizacja LCD
+  lcd.backlight(); // Włączenie podświetlenia LCD
+  // Start the I2C interface
+  Wire.begin();
 
   temp = EEPROM.read(0) * 2; // Odczytujemy wartośc EEPROM i mnożymy x2 aby odczytać prawidłową nastawę
   if (temp < 50 || temp > 450)
@@ -108,6 +118,34 @@ void setsleep();
 void menu();
 void StateStationRead();
 void blinkclock();
+void ustawCzas();
+
+void getDateStuff(byte &year, byte &month, byte &date, byte &dOW,
+                  byte &hour, byte &minute, byte &second)
+{
+  // Call this if you notice something coming in on
+  // the serial port. The stuff coming in should be in
+  // the order YYMMDDwHHMMSS, with an 'x' at the end.
+  boolean gotString = false;
+  char inChar;
+  // byte temp1, temp2;
+  char inString[20];
+
+  byte j = 0;
+  while (!gotString)
+  {
+    if (Serial.available())
+    {
+      inChar = Serial.read();
+      inString[j] = inChar;
+      j += 1;
+      if (inChar == 'x')
+      {
+        gotString = true;
+      }
+    }
+  }
+}
 
 //////////////////////////////////////////////////////////////////////////////
 // LOOP    LOOP    LOOP    LOOP    LOOP    LOOP    LOOP    LOOP    LOOP    LOOP
@@ -118,10 +156,10 @@ void loop()
   if (millis() - sysTime >= 700)
   {
     lcd.setCursor(0, 0);
-    lcd.print("  Stacja Lutownicza "); // Napisz "Stacja Lutownicza"
+    lcd.print("  Stacja Lutownicza "); // Napisz na LCD "Stacja Lutownicza"
 
-    lcd.setCursor(0, 1);
-    lcd.write(1); // Wydrukuj ikonę temperatury kolby
+    lcd.setCursor(0, 1); // ustaw kursor na drugą linię lcd
+    lcd.write(1);        // Wydrukuj ikonę temperatury kolby
     lcd.print("    ");
     lcd.setCursor(1, 1);
     lcd.print(tempRead); // Wydrukuj wartość temperatury kolby
@@ -129,16 +167,12 @@ void loop()
     lcd.print(" ");
     lcd.write(3);
     lcd.print("C       "); // Wydrukuj stopnie C
-
     lcd.setCursor(0, 2);
-    lcd.write(2); // Wydrukuj ikonę ustawionej Temp.
-
+    lcd.write(2);    // Wydrukuj ikonę ustawionej Temp.
     lcd.print(temp); // Wydrukuj ustawioną temp
-
     lcd.print(" ");
     lcd.write(3);
     lcd.print("C       ");
-
     lcd.setCursor(3, 3);
     lcd.write(6); // Wydrukuj ikonę żarówki i stan pinu
     if (bulb == 1)
@@ -179,7 +213,6 @@ void loop()
     lcd.write(0); // Wydrukuj ikonę zegara
 
     lcd.setCursor(15, 3);
-    lcd.print(rtc.getTimeStr()); // Wydruuj godzinę
 
     sysTime = millis();
   }
@@ -207,7 +240,6 @@ void setTime()
 {
   lcd.setCursor(0, 3);
   lcd.print("               ");
-  lcd.print(rtc.getTimeStr());
   lcd.setCursor(0, 0);                      // i tak w pierwszej linii nic nie jest wyświetlane
   lcd.print("    Ustaw Godzine    ");       // więc wpiszemy same spacje plus użyteczną informację
   lcd.setCursor(15, 2), lcd.print("__   "); // to wyświetli anm w trzeciej linii podłogę nad godzinami poniżej
@@ -253,7 +285,7 @@ void setTime()
       lcd.print(hr); // i wyświetlimy godzinę
       Ahr = hr;
     }
-    blinkClock();                                               // Miganie ikoną zegara
+    void blinkClock();                                          // Miganie ikoną zegara
     if ((digitalRead(SW) == 0) && (millis() - sysTime >= 1000)) // Jesli wcisniemy SW i czas od wejscia w petle przekrocył 1s
     {
       sysTime = millis(); // Zapisz nowy czas pracy
@@ -300,9 +332,8 @@ void setTime()
       }
       lcd.print(mt);
       Amt = mt;
-      // rtc.setTime(hr, mt, 00);                      //tutaj nie jest to potrzebne, można wpisać raz na końcu
     }
-    blinkClock();
+    void blinkClock();
     if ((digitalRead(SW) == 0) && (millis() - sysTime >= 1000))
     {
       Flag = 1;
@@ -310,15 +341,12 @@ void setTime()
       lcd.clear();
     }
   }
-  rtc.setTime(hr, mt, 00); // Ustawianie czasu
 }
-w
-    //////////////////////////////////////////////////////////////////////////////
-    // Clock Icon    Clock Icon    Clock Icon    Clock Icon    Clock Icon    Clock
-    //////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+// Clock Icon    Clock Icon    Clock Icon    Clock Icon    Clock Icon    Clock
+//////////////////////////////////////////////////////////////////////////////
 
-    void
-    blinkClock() // Miganie ikonka zegara
+void blinkClock() // Miganie ikonka zegara
 {
   lcd.createChar(0, ClockChar);                               // wpisanie znaku clockChar na pozycji 0
   if (((millis() - timeS) > 0) && ((millis() - timeS) < 250)) // Jesli czas pracy jest wiekszy niz 0 i mniejszy niz 250
@@ -377,7 +405,7 @@ void PressButton()
         digitalWrite(Triak, 0);
         lcd.setCursor(1, 1);
         lcd.print("---");
-        set(); // Uruchom funkcje set (Menu na pulpicie)
+        void set(); // Uruchom funkcje set (Menu na pulpicie)
       }
       buttonActive = false; // Zmien flage aktywnego przycisku na fałsz
     }
@@ -440,7 +468,7 @@ void menu()
     if ((digitalRead(SW) == 0) && (item == 2) && (millis() - sysTime >= 1000))
     {
       Flag = 1;
-      setSleep();
+      void setSleep();
       sleepT = sleepTime; // Aktualizacja zmiennych dla poprawnego wyswietlania na pulpicie po opuszczeniu funkcji
       Flag = 1;
       delay(100);
@@ -624,8 +652,8 @@ void set()
       lcd.setCursor(1, 2);
       lcd.print(temp);
       lcd.print("<");
-
       lcd.setCursor(4, 3);
+
       if (bulb == 1)
       {
         lcd.print("On  ");
@@ -634,6 +662,7 @@ void set()
       {
         lcd.print("Off ");
       }
+
       lcd.setCursor(9, 3);
       if (fan == 1)
       {
@@ -649,7 +678,6 @@ void set()
       lcd.setCursor(1, 2);
       lcd.print(temp);
       lcd.print(" ");
-
       lcd.setCursor(4, 3);
       if (bulb == 1)
       {
@@ -884,4 +912,38 @@ void tempReadadc()
   {
     digitalWrite(Triak, 0);
   }
+}
+
+void ustawCzas()
+{
+  // If something is coming in on the serial line, it's
+  // a time correction so set the clock accordingly.
+  if (Serial.available())
+  {
+    getDateStuff(year, month, date, dOW, hour, minute, second);
+
+    clock.setClockMode(false); // set to 24h
+    // setClockMode(true); // set to 12h
+
+    clock.setYear(year);
+    clock.setMonth(month);
+    clock.setDate(date);
+    clock.setDoW(dOW);
+    clock.setHour(hour);
+    clock.setMinute(minute);
+    clock.setSecond(second);
+
+    // Test of alarm functions
+    // set A1 to one minute past the time we just set the clock
+    // on current day of week.
+    clock.setA1Time(dOW, hour, minute + 1, second, 0x0, true,
+                    false, false);
+    // set A2 to two minutes past, on current day of month.
+    clock.setA2Time(date, hour, minute + 2, 0x0, false, false,
+                    false);
+    // Turn on both alarms, with external interrupt
+    // clock.turnOnAlarm(1);
+    // clock.turnOnAlarm(2);
+  }
+  delay(1000);
 }
