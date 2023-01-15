@@ -32,7 +32,7 @@ byte onoffChar[] = {0x00, 0x0E, 0x11, 0x15, 0x15, 0x11, 0x0E, 0x00}; // on off I
 byte bulbChar[] = {0x0E, 0x11, 0x11, 0x11, 0x0A, 0x0E, 0x0E, 0x04};  // Bulb Icon
 byte fanChar[] = {0x00, 0x13, 0x14, 0x0E, 0x05, 0x19, 0x00, 0x00};   // Fan Icon
 
-DS3231 clock;
+DS3231 Clock;
 byte year;
 byte month;
 byte date;
@@ -43,13 +43,13 @@ byte second;
 
 long timeS = 0; // Zmienna do przechowywania czasu dla migania ikoną Clock
 
-long buttonTimer = 0;            // Obsługa długiego i krótkiego przycisku  (timer)
-long longPressTime = 1000;       // Obsługa długiego i krótkiego przycisku  (Czas przyciśnięcia długiego)
-boolean buttonActive = false;    // Obsługa długiego i krótkiego przycisku  (Flaga)
-boolean longPressActive = false; // Obsługa długiego i krótkiego przycisku  (Flaga)
-int tempRead;                    // Odczyt temperatury
-int temp;                        // Nastawa temperatury
-float V = 0;                     // Odczyt ADC
+unsigned long buttonTimer = 0;      // Obsługa długiego i krótkiego przycisku  (timer)
+unsigned long longPressTime = 1000; // Obsługa długiego i krótkiego przycisku  (Czas przyciśnięcia długiego)
+boolean buttonActive = false;       // Obsługa długiego i krótkiego przycisku  (Flaga)
+boolean longPressActive = false;    // Obsługa długiego i krótkiego przycisku  (Flaga)
+int tempRead;                       // Odczyt temperatury
+int temp;                           // Nastawa temperatury
+float V = 0;                        // Odczyt ADC
 
 byte sleepTime, offTime, offT, sleepT; // Zmienne od czasu uśpienia oraz czasu wyłączenia stacji
 
@@ -57,6 +57,7 @@ bool sensorState; // Zmienna informująca nas o odłożonej kolbie
 long sensorTime;  // Odmierzanie czasu odłożonej kolby
 int Flag1 = 0;    // Flaga do odmierzania czasu odłozonej kolby
 bool fan, bulb;
+
 //////////////////////////////////////////////////////////////////////////////
 // SETUP    SETUP    SETUP    SETUP    SETUP    SETUP    SETUP    SETUP    SETUP
 //////////////////////////////////////////////////////////////////////////////
@@ -479,7 +480,7 @@ void menu()
     if ((digitalRead(SW) == 0) && (item == 3) && (millis() - sysTime >= 1000))
     {
       Flag = 1;
-      setOff();
+      setoff();
       offT = offTime; // Aktualizacja zmiennych dla poprawnego wyswietlania na pulpicie po opuszczeniu funkcji
       Flag = 1;
       delay(100);
@@ -790,7 +791,7 @@ void setSleep()
 
 void setOff()
 {
-  Serial.println("SET Off");
+  // Serial.println("SET Off");
   sysTime = millis();
   int offT = 0;
 
@@ -922,25 +923,25 @@ void ustawCzas()
   {
     getDateStuff(year, month, date, dOW, hour, minute, second);
 
-    clock.setClockMode(false); // set to 24h
-    // setClockMode(true); // set to 12h
+    Clock.setClockMode(false); // set to 24h
+    //   setClockMode(true); // set to 12h
 
-    clock.setYear(year);
-    clock.setMonth(month);
-    clock.setDate(date);
-    clock.setDoW(dOW);
-    clock.setHour(hour);
-    clock.setMinute(minute);
-    clock.setSecond(second);
+    Clock.setYear(year);
+    Clock.setMonth(month);
+    Clock.setDate(date);
+    Clock.setDoW(dOW);
+    Clock.setHour(hour);
+    Clock.setMinute(minute);
+    Clock.setSecond(second);
 
     // Test of alarm functions
     // set A1 to one minute past the time we just set the clock
     // on current day of week.
-    clock.setA1Time(dOW, hour, minute + 1, second, 0x0, true,
-                    false, false);
+    // todo clock.setA1Time(dOW, hour, minute + 1, second, 0x0, true,
+    // todo                false, false);
     // set A2 to two minutes past, on current day of month.
-    clock.setA2Time(date, hour, minute + 2, 0x0, false, false,
-                    false);
+    // todo clock.setA2Time(date, hour, minute + 2, 0x0, false, false,
+    // todo                false);
     // Turn on both alarms, with external interrupt
     // clock.turnOnAlarm(1);
     // clock.turnOnAlarm(2);
