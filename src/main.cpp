@@ -15,8 +15,9 @@
 #define Relay 13    // Załączanie zasilania
 #define PW_OFF 12   // Pin wyłączający stację
 
-RotaryEncoder encoder(2, 3);        // Piny do których podłaczamy Enkoder
-LiquidCrystal_I2C lcd(0x3F, 20, 4); // Deklaracja adresu i rodzaju LCD
+RotaryEncoder encoder(2, 3); // Piny do których podłaczamy Enkoder
+// LiquidCrystal_I2C lcd(0x3F, 20, 4); // Deklaracja adresu i rodzaju LCD
+LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 long sysTime;                                                        // Zmienna do przechowywania czasu pracy procesora
 int hr = 0, mt = 0, Ahr = 0, Amt = 0;                                // Zmienne do przechowywania godzin i minut
@@ -112,13 +113,13 @@ ISR(PCINT2_vect) // Procedura zapisywania zmian w przerwaniach dla enkodera
   encoder.tick();
 }
 
-void PressButton();
+void pressButton();
 void tempReadadc();
-void setoff();
-void setsleep();
+void setOff();
+void setSleep();
 void menu();
 void StateStationRead();
-void blinkclock();
+void blinkClock();
 void ustawCzas();
 
 void getDateStuff(byte &year, byte &month, byte &date, byte &dOW,
@@ -219,7 +220,7 @@ void loop()
   }
 
   StateStationRead(); // Aktualizacja stanu odłożonej kolby
-  PressButton();      // Sprawdzanie wcisniecia przycisku enkodera
+  pressButton();      // Sprawdzanie wcisniecia przycisku enkodera
   tempReadadc();      // Odczytywanie temperatury kolby
 
   if (Flag == 0)
@@ -371,7 +372,7 @@ void blinkClock() // Miganie ikonka zegara
 // Short Long Press      Short Long Press      Short Long Press
 //////////////////////////////////////////////////////////////////////////////
 
-void PressButton()
+void pressButton()
 {
 
   if (digitalRead(SW) == LOW) // Jesli wcisniemy przycisk
@@ -480,7 +481,7 @@ void menu()
     if ((digitalRead(SW) == 0) && (item == 3) && (millis() - sysTime >= 1000))
     {
       Flag = 1;
-      setoff();
+      setOff();
       offT = offTime; // Aktualizacja zmiennych dla poprawnego wyswietlania na pulpicie po opuszczeniu funkcji
       Flag = 1;
       delay(100);
